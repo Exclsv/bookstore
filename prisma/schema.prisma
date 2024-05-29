@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  id                     String      @id @default(cuid())
+  title                  String
+  slogan                 String
+  author                 String
+  price                  Int
+  rating                 Float
+  published              DateTime
+  isAvailableForPurchase Boolean     @default(true)
+  pages                  Int
+  imageSrc               String
+  filePath               String
+  description            String
+  genre                  String[]
+  tags                   String[]
+  formats                String[]
+  orders                 Order[]
+  collection             Collection? @relation(fields: [collectionId], references: [id])
+  collectionId           String?
+}
+
+model Collection {
+  id                     String  @id @default(cuid())
+  title                  String
+  price                  Int
+  author                 String
+  rating                 Float
+  isAvailableForPurchase Boolean @default(true)
+  numberOfBooks          Int
+  books                  Book[]
+  orders                 Order[]
+}
+
+model User {
+  id       String  @id @default(cuid())
+  email    String  @unique
+  password String
+  role     String
+  orders   Order[]
+}
+
+model Order {
+  id           String    @id @default(cuid())
+  price        Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  userId       String
+  bookId       String?
+  collectionId String?
+  orderType    OrderType @default(BOOK)
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book       Book?       @relation(fields: [bookId], references: [id], onDelete: Restrict)
+  collection Collection? @relation(fields: [collectionId], references: [id], onDelete: Restrict)
+}
+
+enum OrderType {
+  BOOK
+  COLLECTION
+}
+
+// model DownloadVerification {
+//   id        String   @id @default(cuid())
+//   expiresAt DateTime
+//   createdAt DateTime @default(now())
+//   bookId    String
+//   book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+// }
